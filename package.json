@@ -4,5 +4,7 @@
   "main": "index.js",
   "author": "Pete Corey <petecorey@gmail.com>",
   "license": "MIT",
-  "type": "module"
+  "scripts": {
+    "start": "until node index.js; do :; done"
+  }
 }

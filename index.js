@@ -1,8 +1,34 @@
-import crypto from "crypto";
-import { execSync } from "child_process";
+const { createHash, randomBytes } = require("crypto");
+const { readFileSync, writeFileSync } = require("fs");
+const { execSync } = require("child_process");
 
-console.log(
-	crypto.createHash("sha1").update(crypto.randomBytes(40)).digest("hex")
+let logHash = (randomHash) => {
+  console.log(`git rev-parse --short=4 head: '@'`.replace("@", randomHash));
+};
+
+if (!readFileSync(__filename).toString().includes("\'@\'")) {
+  logHash();
+  process.exit(0);
+}
+
+let randomHash = createHash("sha1")
+  .update(randomBytes(1024))
+  .digest("hex")
+  .slice(0, 4);
+
+writeFileSync(
+  __filename,
+  readFileSync(__filename).toString().replace(/'@'/g, randomHash)
 );
 
-console.log(execSync("git rev-parse --short HEAD").toString());
+execSync("git commit -am 'commit'");
+
+let actualHash = execSync("git rev-parse head").toString().trim();
+
+if (randomHash == actualHash.slice(0, 4)) {
+  logHash(randomHash);
+  process.exit(0);
+} else {
+  execSync("git reset --hard head~");
+  process.exit(1);
+}
